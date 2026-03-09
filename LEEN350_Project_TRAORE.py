@@ -1,11 +1,9 @@
-# -------------------------------------------------
 #  LEEN350 Image Processing and Lab
 #  MAHAMAODU MASSAMAN TRAORE  /  220303904
 #  Platform : Google Colab  
 #  Pipeline : 8 steps
-# -------------------------------------------------
 
-# -- IMPORTS -------------------------------------------------
+#IMPORTS
 # Standard libraries for image processing
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,10 +15,9 @@ from skimage.filters import threshold_otsu, threshold_local
 from skimage.measure import label, regionprops
 
 
-# -------------------------------------------------
 # STEP 1 — Load the image
 # Built-in coins image: 303x384 px, grayscale, 24 coins
-# -------------------------------------------------
+
 original = data.coins()
 
 print(f"Shape : {original.shape}")
@@ -35,10 +32,9 @@ plt.savefig("step1_original.png", dpi=150)
 plt.show()
 
 
-# ============================================================
 # STEP 2 — Add Gaussian noise
 # Simulates a real camera sensor — std=25, seed=42
-# ============================================================
+
 np.random.seed(42)
 noise = np.random.normal(0, 25, original.shape)
 noisy = np.clip(original.astype(float) + noise, 0, 255).astype(np.uint8)
@@ -56,12 +52,11 @@ plt.savefig("step2_noisy.png", dpi=150)
 plt.show()
 
 
-# -------------------------------------------------
 # STEP 3 — Spatial filters + PSNR / MSE
 # 3 filters tested: Gaussian s=1, Gaussian s=2, Median 3x3
 # PSNR and MSE computed immediately after each filter
 # Higher PSNR = better quality  (Eq. 2-4 filters / Eq. 19-20 metrics)
-# -------------------------------------------------
+
 
 # Apply filters  (Eq. 2-4)
 gauss1 = gaussian_filter(noisy, sigma=1).astype(np.uint8)
@@ -117,7 +112,6 @@ plt.savefig("step3_psnr_spatial.png", dpi=150)
 plt.show()
 
 
-# -------------------------------------------------
 # STEP 4 — FFT low-pass filter + full PSNR comparison
 # Transform image to frequency domain — apply circular mask — transform back
 # r=30 strong cut / r=60 mild cut  (Eq. 5-7)
@@ -173,13 +167,13 @@ plt.savefig("step4_psnr_all.png", dpi=150)
 plt.show()
 
 
-# -------------------------------------------------
+
 # STEP 5 — Segmentation
 # Input: best filtered image = Gaussian sigma=1
 # Otsu: one global threshold  (Eq. 8-9)
 # Adaptive: local threshold per pixel, block=35, C=10  (Eq. 10)
 # Both masks shown side by side immediately
-# -------------------------------------------------
+
 best_filter = gauss1   # best PSNR from Step 3
 
 T_otsu        = threshold_otsu(best_filter)              # Eq. 8, 9
@@ -205,13 +199,12 @@ plt.savefig("step5_segmentation.png", dpi=150)
 plt.show()
 
 
-# -------------------------------------------------
 # STEP 6 — Morphological operations
 # Input: Otsu binary mask
 # 4 operations with a 3x3 kernel  (Eq. 11-14)
 # Closing is best: fills holes inside coins
 # All 5 masks shown side by side
-# -------------------------------------------------
+
 kernel = np.ones((3, 3), dtype=bool)
 
 morph_erosion  = binary_erosion(mask_otsu,  structure=kernel)   # Eq. 11
@@ -233,13 +226,13 @@ plt.savefig("step6_morphology.png", dpi=150)
 plt.show()
 
 
-# -------------------------------------------------
+
 # STEP 7 — Segmentation metrics
 # Reference mask: Otsu
 # Confusion matrix built manually: TP, TN, FP, FN
 # 5 metrics: Accuracy, Precision, Recall, F1, IoU  (Eq. 21-25)
 # Full table printed
-# -------------------------------------------------
+
 
 def segmentation_metrics(ground_truth, prediction):
     gt = ground_truth.astype(bool)
@@ -293,7 +286,6 @@ plt.savefig("step7_metrics_comparison.png", dpi=150)
 plt.show()
 
 
-# -------------------------------------------------
 # STEP 8 — Feature Extraction
 # Input: Closing mask (best result)
 # label() gives each coin a unique integer ID
@@ -301,7 +293,7 @@ plt.show()
 # 4 features per coin  (Eq. 15-18)
 # Circularity ~ 1 and Eccentricity ~ 0 = round = coin confirmed
 # Labelled image and scatter plot
-# -------------------------------------------------
+
 labeled_mask = label(morph_closing)   # unique ID per coin region
 
 features = []
